@@ -1,0 +1,53 @@
+# MemoryOS – Python dependencies
+# Virtual environments
+venv/
+env/
+.venv/
+__pypackages__/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data stores (runtime-generated, never commit)
+data/
+*.db
+*.db-wal
+*.db-shm
+*.index
+kuzu_db/
+
+# Environment variables (contains API keys!)
+.env
+.env.*
+!.env.example
+
+# ML model cache (large downloads)
+.cache/
+sentence_transformers_cache/
+~/.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test output
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover
+
+# Logs
+*.log
+logs/
