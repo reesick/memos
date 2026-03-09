@@ -1,0 +1,283 @@
+{
+  "timestamp": "2026-03-09T22:34:33.126661",
+  "api": "http://localhost:8000",
+  "top_k": 5,
+  "total_questions": 15,
+  "recall_at_k": 0.533,
+  "precision_at_1": 0.533,
+  "latency_p50_ms": 188.0,
+  "latency_p95_ms": 220.6,
+  "total_memories": 89,
+  "questions": [
+    {
+      "query": "What is Arjun's role?",
+      "expected_value": "engineer",
+      "expected_entity": "Arjun",
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 220.6,
+      "top_result": {
+        "memory_id": "mem_95736102",
+        "entity": "Dev",
+        "attribute": "technology",
+        "value": "FastAPI",
+        "score": 0.1405,
+        "source_type": "text",
+        "timestamp": 1773075749,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Where does Priya work?",
+      "expected_value": null,
+      "expected_entity": "Priya",
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 189.2,
+      "top_result": {
+        "memory_id": "mem_b09364b9",
+        "entity": "BuildFast",
+        "attribute": "status",
+        "value": "hiring",
+        "score": 0.1361,
+        "source_type": "text",
+        "timestamp": 1773075804,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "What school did Sam attend?",
+      "expected_value": null,
+      "expected_entity": "Sam",
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 209.6,
+      "top_result": {
+        "memory_id": "mem_d68d81b2",
+        "entity": "Rayan",
+        "attribute": "university",
+        "value": "Stanford",
+        "score": 0.2541,
+        "source_type": "text",
+        "timestamp": 1773075785,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "What city is Leila based in?",
+      "expected_value": null,
+      "expected_entity": "Leila",
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 194.1,
+      "top_result": {
+        "memory_id": "mem_35d785be",
+        "entity": "Arjun",
+        "attribute": "location",
+        "value": "Toronto",
+        "score": 0.1801,
+        "source_type": "text",
+        "timestamp": 1773075802,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "What tech does Dev use?",
+      "expected_value": null,
+      "expected_entity": "Dev",
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 192.9,
+      "top_result": {
+        "memory_id": "mem_25d5dddd",
+        "entity": "Dev",
+        "attribute": "role",
+        "value": "iOS developer",
+        "score": 0.3143,
+        "source_type": "text",
+        "timestamp": 1773075762,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who uses React?",
+      "expected_value": "React",
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 183.4,
+      "top_result": {
+        "memory_id": "mem_167b5ccd",
+        "entity": "Leila",
+        "attribute": "skill",
+        "value": "React",
+        "score": 0.5253,
+        "source_type": "text",
+        "timestamp": 1773075773,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who works with PyTorch?",
+      "expected_value": "PyTorch",
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 185.6,
+      "top_result": {
+        "memory_id": "mem_f2758031",
+        "entity": "MemoryOS",
+        "attribute": "technology",
+        "value": "PyTorch",
+        "score": 0.5227,
+        "source_type": "text",
+        "timestamp": 1773075739,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who uses Kubernetes?",
+      "expected_value": "Kubernetes",
+      "expected_entity": null,
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 188.0,
+      "top_result": {
+        "memory_id": "mem_0b5babe6",
+        "entity": "MobileApp",
+        "attribute": "language",
+        "value": "Kotlin",
+        "score": 0.1518,
+        "source_type": "text",
+        "timestamp": 1773075767,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who works at Acme Corp?",
+      "expected_value": null,
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 179.4,
+      "top_result": {
+        "memory_id": "mem_e3daf3f2",
+        "entity": "Rayan",
+        "attribute": "employer",
+        "value": "Acme Corp",
+        "score": 0.6134,
+        "source_type": "text",
+        "timestamp": 1773075845,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who joined NexaLabs?",
+      "expected_value": null,
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 181.8,
+      "top_result": {
+        "memory_id": "mem_1f83852d",
+        "entity": "Zoe",
+        "attribute": "employer",
+        "value": "NexaLabs",
+        "score": 0.5421,
+        "source_type": "text",
+        "timestamp": 1773075713,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "What is MemoryOS built with?",
+      "expected_value": null,
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 185.8,
+      "top_result": {
+        "memory_id": "mem_6bd83afc",
+        "entity": "Zoe",
+        "attribute": "project",
+        "value": "MemoryOS",
+        "score": 0.5379,
+        "source_type": "text",
+        "timestamp": 1773075719,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who leads ProjectAlpha?",
+      "expected_value": null,
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 191.9,
+      "top_result": {
+        "memory_id": "mem_72eb11bf",
+        "entity": "Mia",
+        "attribute": "role",
+        "value": "team lead",
+        "score": 0.168,
+        "source_type": "text",
+        "timestamp": 1773075753,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who is the backend engineer?",
+      "expected_value": "engineer",
+      "expected_entity": null,
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 178.7,
+      "top_result": {
+        "memory_id": "mem_13a297e4",
+        "entity": "Leila",
+        "attribute": "role",
+        "value": "backend developer",
+        "score": 0.3514,
+        "source_type": "text",
+        "timestamp": 1773075832,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who studied computer science?",
+      "expected_value": null,
+      "expected_entity": null,
+      "recall_k": true,
+      "precision_1": true,
+      "latency_ms": 176.3,
+      "top_result": {
+        "memory_id": "mem_e6e897a1",
+        "entity": "Dev",
+        "attribute": "skill",
+        "value": "computer science",
+        "score": 0.4824,
+        "source_type": "text",
+        "timestamp": 1773075744,
+        "contradictory_fact": false
+      }
+    },
+    {
+      "query": "Who is based in Bangalore?",
+      "expected_value": "Bangalore",
+      "expected_entity": null,
+      "recall_k": false,
+      "precision_1": false,
+      "latency_ms": 191.3,
+      "top_result": {
+        "memory_id": "mem_1d2969e7",
+        "entity": "Priya",
+        "attribute": "education institution",
+        "value": "VIT Pune",
+        "score": 0.189,
+        "source_type": "text",
+        "timestamp": 1773072271,
+        "contradictory_fact": false
+      }
+    }
+  ]
+}

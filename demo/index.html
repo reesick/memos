@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MemoryOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #f5f5f5;
+      --surface:      #ffffff;
+      --surface-2:    #f9f9f9;
+      --border:       #e5e5e5;
+      --border-dark:  #d0d0d0;
+      --text-primary: #111111;
+      --text-secondary:#555555;
+      --text-muted:   #999999;
+      --accent:       #16a34a;
+      --accent-soft:  #dcfce7;
+      --danger:       #ef4444;
+      --font:         'Geist', -apple-system, sans-serif;
+      --mono:         'Geist Mono', monospace;
+    }
+
+    html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); color: var(--text-primary); font-size: 13px; }
+
+    /* ─── TOP BAR ──────────────────────────────────────── */
+    .topbar {
+      height: 44px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .topbar-logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .topbar-spacer { flex: 1; }
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .topbar-model {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: var(--mono);
+    }
+
+    /* ─── LAYOUT ────────────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr 300px;
+      height: 100vh;
+      padding-top: 44px;
+    }
+    .panel {
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .panel:last-child { border-right: none; }
+
+    /* ─── PANEL HEADERS ─────────────────────────────────── */
+    .panel-header {
+      height: 40px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .panel-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .panel-header-actions { margin-left: auto; display: flex; gap: 6px; }
+    .btn-end {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+    .btn-end:hover { background: #fef2f2; }
+
+    /* ─── CHAT PANEL ─────────────────────────────────────── */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .chat-day-divider {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin: 12px 0 4px;
+      font-family: var(--mono);
+    }
+    .msg-row { display: flex; flex-direction: column; }
+    .msg-sender {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .msg-row.you .msg-sender { text-align: right; }
+    .msg-row.you { align-items: flex-end; margin-top: 8px; }
+    .msg-row.ai  { align-items: flex-start; margin-top: 8px; }
+    .msg-bubble {
+      max-width: 260px;
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      border: 1px solid var(--border);
+    }
+    .msg-row.you .msg-bubble {
+      background: var(--surface-2);
+      color: var(--text-primary);
+    }
+    .msg-row.ai .msg-bubble {
+      background: var(--surface);
+      color: var(--text-primary);
+    }
+    .msg-bubble.injected-context {
+      border-color: var(--accent);
+      background: #f0fdf4;
+      font-size: 11px;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+
+    .chat-input-row {
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 10px 12px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: var(--font);
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      resize: none;
+      line-height: 1.4;
+    }
+    .chat-input:focus { border-color: var(--border-dark); }
+    .btn-send {
+      padding: 7px 14px;
+      background: var(--text-primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--font);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-send:hover { background: #333; }
+
+    /* ─── MEMORIES PANEL ────────────────────────────────── */
+    .memories-search {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mem-search-input {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: var(--font);
+      background: var(--surface);
+      color: var(--text-primary);
+      outline: none;
+    }
+    .mem-search-input:focus { border-color: var(--border-dark); }
+    .btn-search {
+      padding: 6px 12px;
+      background: var(--text-primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .memories-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .mem-card {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+    .mem-card:hover { background: var(--surface-2); }
+    .mem-card.selected { background: #f0fdf4; border-left: 2px solid var(--accent); }
+    .mem-card-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+    .mem-card-value em { color: var(--accent); font-style: normal; font-weight: 600; }
+    .mem-card-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      display: flex;
+      gap: 8px;
+    }
+    .mem-tag {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+    .mem-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 40px 20px;
+    }
+    .mem-loading {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 20px;
+      font-family: var(--mono);
+    }
+
+    /* ─── RIGHT PANEL – TABS ────────────────────────────── */
+    .right-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.1s ease;
+    }
+    .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+    .tab-content { flex: 1; overflow-y: auto; display: none; }
+    .tab-content.active { display: block; }
+
+    /* Profile sections */
+    .profile-section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .profile-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .profile-fact {
+      padding: 5px 0;
+      font-size: 12px;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border);
+      line-height: 1.4;
+    }
+    .profile-fact:last-child { border-bottom: none; }
+    .profile-fact em { color: var(--accent); font-style: normal; font-weight: 500; }
+    .profile-empty { font-size: 11px; color: var(--text-muted); font-style: italic; }
+
+    /* Session info */
+    .session-info { padding: 12px 14px; }
+    .session-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 11px; }
+    .session-row span:first-child { color: var(--text-muted); }
+    .session-row span:last-child { color: var(--text-primary); font-family: var(--mono); font-size: 10px; }
+
+    /* ─── GRAPH PANEL ───────────────────────────────────── */
+    #graph-container {
+      flex: 1;
+      background: var(--surface-2);
+      position: relative;
+    }
+    #graph-vis { width: 100%; height: 100%; }
+    .graph-controls {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .graph-btn {
+      width: 28px; height: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary);
+    }
+    .graph-btn:hover { background: var(--surface-2); }
+    .graph-legend {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 10px;
+      min-width: 130px;
+    }
+    .graph-legend-title {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .legend-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; color: var(--text-secondary); font-size: 10px; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .graph-tooltip {
+      position: absolute;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 11px;
+      max-width: 200px;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+    .graph-tooltip .tt-label { font-size: 9px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .graph-tooltip .tt-value { font-size: 12px; color: var(--text-primary); font-weight: 500; }
+
+    /* ─── SCROLLBAR ─────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 2px; }
+
+    /* ─── ANIMATIONS ─────────────────────────────────────── */
+    .fade-in { animation: fadeIn 0.18s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ─── INJECT BADGE ──────────────────────────────────── */
+    .inject-badge {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logo-dot"></div>
+    MemoryOS
+  </div>
+  <div class="topbar-status">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-label">recording conversation</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-model" id="model-badge">claude</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- ── LEFT: CHAT ── -->
+  <div class="panel" id="chat-panel">
+    <div class="panel-header">
+      <div class="panel-label">Conversation</div>
+      <div class="panel-header-actions">
+        <button class="btn-end" onclick="clearChat()">END</button>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-day-divider" id="chat-date"></div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chat-input" rows="1" placeholder="Say something…" onkeydown="handleKey(event)"></textarea>
+      <button class="btn-send" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- ── MIDDLE: MEMORIES ── -->
+  <div class="panel" id="memories-panel">
+    <div class="panel-header">
+      <div class="panel-label">Memories</div>
+      <div class="panel-header-actions">
+        <span id="mem-count" style="font-size:11px;color:var(--text-muted);">0</span>
+      </div>
+    </div>
+    <div class="memories-search">
+      <input class="mem-search-input" id="mem-search" placeholder="Search memories…" onkeydown="if(event.key==='Enter') searchMemories()" />
+      <button class="btn-search" onclick="searchMemories()">Search</button>
+    </div>
+    <div class="memories-list" id="memories-list">
+      <div class="mem-empty">No memories yet.<br/>Start a conversation to store facts.</div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: PROFILE / GRAPH ── -->
+  <div class="panel" id="right-panel" style="border-right:none;">
+    <div class="right-tabs">
+      <button class="tab-btn active" onclick="switchTab('context')">Context</button>
+      <button class="tab-btn" onclick="switchTab('graph')">Graph</button>
+    </div>
+
+    <!-- CONTEXT TAB -->
+    <div class="tab-content active" id="tab-context">
+      <div class="profile-section">
+        <div class="profile-section-label">Profile · Static</div>
+        <div id="profile-static"><div class="profile-empty">No static facts yet.</div></div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-label">Profile · Dynamic</div>
+        <div id="profile-dynamic"><div class="profile-empty">No dynamic facts yet.</div></div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-section-label">Session</div>
+        <div class="session-info" id="session-info">
+          <div class="session-row"><span>Session ID</span><span id="sess-id">—</span></div>
+          <div class="session-row"><span>Facts added</span><span id="sess-facts">0</span></div>
+          <div class="session-row"><span>Started</span><span id="sess-started">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRAPH TAB -->
+    <div class="tab-content" id="tab-graph" style="display:none;flex-direction:column;overflow:hidden;">
+      <div id="graph-container" style="flex:1;position:relative;">
+        <div id="graph-vis"></div>
+        <div class="graph-controls">
+          <button class="graph-btn" onclick="graphFit()" title="Fit">⌂</button>
+          <button class="graph-btn" onclick="graphZoomIn()" title="Zoom in">+</button>
+          <button class="graph-btn" onclick="graphZoomOut()" title="Zoom out">−</button>
+        </div>
+        <div class="graph-legend">
+          <div class="graph-legend-title">Nodes</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#16a34a;"></div> Entity</div>
+          <div class="legend-row"><div class="legend-dot" style="background:#6b7280;"></div> Fact</div>
+          <div style="margin-top:6px;" class="graph-legend-title">Relations</div>
+          <div class="legend-row" style="font-family:var(--mono);">—— has fact</div>
+        </div>
+        <div class="graph-tooltip" id="graph-tooltip">
+          <div class="tt-label" id="tt-label">Entity</div>
+          <div class="tt-value" id="tt-value"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let sessionId = 'sess_' + Date.now();
+let sessionStart = new Date();
+let factsAdded = 0;
+let graphNetwork = null;
+let graphNodes = new vis.DataSet();
+let graphEdges = new vis.DataSet();
+let currentTab = 'context';
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('chat-date').textContent = new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+  document.getElementById('sess-id').textContent = sessionId.slice(-8);
+  document.getElementById('sess-started').textContent = sessionStart.toLocaleTimeString();
+  checkHealth();
+  loadMemories();
+  initGraph();
+});
+
+async function checkHealth() {
+  try {
+    const r = await fetch(`${API}/health`);
+    const d = await r.json();
+    document.getElementById('model-badge').textContent = d.ollama ? 'ollama' : 'claude';
+  } catch { document.getElementById('status-dot').style.background = '#ef4444'; document.getElementById('status-label').textContent = 'API offline'; }
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  appendBubble('you', text);
+
+  // Check should_inject before adding to memory
+  let willInject = false;
+  try {
+    const checkR = await fetch(`${API}/memory/should_inject`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({prompt: text})
+    });
+    const checkD = await checkR.json();
+    willInject = checkD.inject;
+  } catch {}
+
+  // Add to memory
+  try {
+    const r = await fetch(`${API}/memory/add`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({content: text, source_type: 'text', session_id: sessionId})
+    });
+    const d = await r.json();
+    if (d.facts_added > 0) {
+      factsAdded += d.facts_added;
+      document.getElementById('sess-facts').textContent = factsAdded;
+      setTimeout(loadMemories, 400);
+      setTimeout(loadGraph, 600);
+    }
+  } catch {}
+
+  // Augment and get AI response
+  let augmented = text;
+  let injected = false;
+  try {
+    const augR = await fetch(`${API}/memory/augment`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({prompt: text, top_k: 3})
+    });
+    const augD = await augR.json();
+    augmented = augD.augmented_prompt;
+    injected = augD.injected;
+  } catch {}
+
+  if (injected) {
+    appendBubble('ai', '[memory injected into context]', true);
+  }
+
+  // Simulated AI response (replace with actual LLM call if needed)
+  const aiReply = await simulateAIReply(text, augmented);
+  appendBubble('ai', aiReply);
+}
+
+function appendBubble(role, text, isContext = false) {
+  const messages = document.getElementById('chat-messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${role} fade-in`;
+
+  const label = document.createElement('div');
+  label.className = 'msg-sender';
+  label.textContent = role === 'you' ? 'YOU' : 'AI';
+  if (isContext) label.innerHTML = 'AI <span class="inject-badge">memory</span>';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble' + (isContext ? ' injected-context' : '');
+  bubble.textContent = text;
+
+  row.appendChild(label);
+  row.appendChild(bubble);
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+async function simulateAIReply(userText, augmented) {
+  // Simulated: acknowledges memory context if injected
+  const hasContext = augmented !== userText;
+  const starters = ['Got it.', 'Interesting.', 'I see.', 'Makes sense.'];
+  const base = starters[Math.floor(Math.random() * starters.length)];
+  return hasContext
+    ? `${base} I've noted that and kept it in memory.`
+    : `${base} Tell me more.`;
+}
+
+function clearChat() {
+  const messages = document.getElementById('chat-messages');
+  const div = document.getElementById('chat-date');
+  messages.innerHTML = '';
+  messages.appendChild(div);
+  sessionId = 'sess_' + Date.now();
+  sessionStart = new Date();
+  factsAdded = 0;
+  document.getElementById('sess-id').textContent = sessionId.slice(-8);
+  document.getElementById('sess-started').textContent = sessionStart.toLocaleTimeString();
+  document.getElementById('sess-facts').textContent = '0';
+}
+
+// ── Memories ──────────────────────────────────────────────────────────────
+
+async function loadMemories() {
+  const list = document.getElementById('memories-list');
+  list.innerHTML = '<div class="mem-loading">loading…</div>';
+  try {
+    const r = await fetch(`${API}/memory/list?limit=50`);
+    const d = await r.json();
+    document.getElementById('mem-count').textContent = d.total;
+    renderMemories(d.memories);
+    updateProfile(d.memories);
+  } catch {
+    list.innerHTML = '<div class="mem-empty">Could not load memories.<br/>Is the API running?</div>';
+  }
+}
+
+async function searchMemories() {
+  const q = document.getElementById('mem-search').value.trim();
+  if (!q) { loadMemories(); return; }
+  const list = document.getElementById('memories-list');
+  list.innerHTML = '<div class="mem-loading">searching…</div>';
+  try {
+    const r = await fetch(`${API}/memory/search`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query: q, top_k: 20})
+    });
+    const d = await r.json();
+    renderMemories(d.results, q);
+  } catch {
+    list.innerHTML = '<div class="mem-empty">Search failed.</div>';
+  }
+}
+
+function renderMemories(mems, highlight = '') {
+  const list = document.getElementById('memories-list');
+  if (!mems || mems.length === 0) {
+    list.innerHTML = '<div class="mem-empty">No memories found.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  mems.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'mem-card fade-in';
+    card.onclick = () => { document.querySelectorAll('.mem-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); };
+
+    const val = highlight
+      ? (m.value||'').replace(new RegExp(`(${highlight})`, 'gi'), '<em>$1</em>')
+      : (m.value || '');
+
+    const ts = m.timestamp ? new Date(m.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+    const attr = (m.attribute || '').replace(/_/g, ' ');
+
+    card.innerHTML = `
+      <div class="mem-card-value">${m.entity ? `<strong>${m.entity}</strong> · ` : ''}${val}</div>
+      <div class="mem-card-meta">
+        <span class="mem-tag">${attr}</span>
+        <span class="mem-tag">${m.source_type || 'text'}</span>
+        <span style="margin-left:auto;">${ts}</span>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function updateProfile(mems) {
+  if (!mems || mems.length === 0) return;
+
+  // Static: facts that look fixed (role, name, university, employer)
+  const staticAttrs = ['role', 'name', 'university', 'employer', 'location', 'degree'];
+  const statFacts = mems.filter(m => staticAttrs.some(a => (m.attribute||'').includes(a)));
+  const dynFacts  = mems.filter(m => !staticAttrs.some(a => (m.attribute||'').includes(a)));
+
+  const renderFacts = (el, facts) => {
+    if (!facts.length) { el.innerHTML = '<div class="profile-empty">None yet.</div>'; return; }
+    el.innerHTML = facts.slice(0,6).map(m => {
+      const val = (m.value||'').length > 50 ? m.value.slice(0,50)+'…' : m.value;
+      return `<div class="profile-fact"><em>${m.entity||'–'}</em> · ${(m.attribute||'').replace(/_/g,' ')}: ${val}</div>`;
+    }).join('');
+  };
+
+  renderFacts(document.getElementById('profile-static'), statFacts);
+  renderFacts(document.getElementById('profile-dynamic'), dynFacts);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tab === 'context') || (i === 1 && tab === 'graph'));
+  });
+  document.getElementById('tab-context').style.display = tab === 'context' ? 'block' : 'none';
+  const graphTab = document.getElementById('tab-graph');
+  graphTab.style.display = tab === 'graph' ? 'flex' : 'none';
+  if (tab === 'graph') { loadGraph(); setTimeout(() => graphNetwork && graphNetwork.fit(), 100); }
+}
+
+// ── Graph ─────────────────────────────────────────────────────────────────
+
+function initGraph() {
+  const container = document.getElementById('graph-vis');
+  const options = {
+    nodes: {
+      shape: 'dot',
+      size: 10,
+      font: { size: 11, face: 'Geist, sans-serif', color: '#555555' },
+      borderWidth: 1.5,
+    },
+    edges: {
+      width: 1,
+      color: { color: '#d0d0d0', highlight: '#16a34a' },
+      smooth: { type: 'curvedCW', roundness: 0.15 },
+      arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+      font: { size: 9, color: '#999999', face: 'Geist Mono, monospace' },
+    },
+    physics: {
+      stabilization: { iterations: 80 },
+      barnesHut: { gravitationalConstant: -3000, springLength: 120 },
+    },
+    interaction: { hover: true, tooltipDelay: 100 },
+  };
+
+  graphNetwork = new vis.Network(container, { nodes: graphNodes, edges: graphEdges }, options);
+
+  graphNetwork.on('hoverNode', (params) => {
+    const node = graphNodes.get(params.node);
+    if (!node) return;
+    const tt = document.getElementById('graph-tooltip');
+    document.getElementById('tt-label').textContent = node.group === 'entity' ? 'Entity' : 'Fact';
+    document.getElementById('tt-value').textContent = node.title || node.label;
+    tt.style.display = 'block';
+    tt.style.left = (params.event.offsetX + 12) + 'px';
+    tt.style.top  = (params.event.offsetY - 10) + 'px';
+  });
+  graphNetwork.on('blurNode', () => { document.getElementById('graph-tooltip').style.display='none'; });
+}
+
+async function loadGraph() {
+  try {
+    const memR = await fetch(`${API}/memory/list?limit=30`);
+    const memD = await memR.json();
+    const mems = memD.memories || [];
+    if (!mems.length) return;
+
+    const newNodes = [];
+    const newEdges = [];
+    const entitySet = new Set();
+
+    mems.forEach(m => {
+      const factId = m.memory_id;
+      const entity = m.entity;
+
+      if (!graphNodes.get(factId)) {
+        newNodes.push({
+          id: factId,
+          label: (m.value||'').slice(0, 18) + ((m.value||'').length > 18 ? '…' : ''),
+          title: m.value,
+          group: 'fact',
+          color: { background: '#f5f5f5', border: '#d0d0d0', highlight: { background:'#dcfce7', border:'#16a34a' } },
+          font: { color: '#555555' },
+          size: 8,
+        });
+      }
+
+      if (entity && !entitySet.has(entity)) {
+        entitySet.add(entity);
+        if (!graphNodes.get('entity_' + entity)) {
+          newNodes.push({
+            id: 'entity_' + entity,
+            label: entity,
+            group: 'entity',
+            color: { background: '#dcfce7', border: '#16a34a' },
+            font: { color: '#111111', size: 12 },
+            size: 14,
+          });
+        }
+      }
+
+      const edgeId = `edge_${entity}_${factId}`;
+      if (entity && !graphEdges.get(edgeId)) {
+        newEdges.push({
+          id: edgeId,
+          from: 'entity_' + entity,
+          to: factId,
+          label: (m.attribute||'').replace(/_/g,' ').slice(0,12),
+        });
+      }
+    });
+
+    if (newNodes.length) graphNodes.add(newNodes);
+    if (newEdges.length) graphEdges.add(newEdges);
+    if (currentTab === 'graph') graphNetwork.stabilize(30);
+
+  } catch(e) { console.warn('Graph load failed:', e); }
+}
+
+function graphFit()     { graphNetwork && graphNetwork.fit({ animation: { duration: 300 } }); }
+function graphZoomIn()  { graphNetwork && graphNetwork.moveTo({ scale: graphNetwork.getScale() * 1.3 }); }
+function graphZoomOut() { graphNetwork && graphNetwork.moveTo({ scale: graphNetwork.getScale() * 0.75 }); }
+</script>
+</body>
+</html>

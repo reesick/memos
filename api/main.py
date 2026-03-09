@@ -6,10 +6,18 @@ Auto-generates /docs at localhost:8000/docs.
 """
 
 import logging
+import os
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+# Absolute project root — works regardless of how uvicorn imports this module
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_DEMO_DIR = _PROJECT_ROOT / "demo"
 
 import core.engine as engine
 from core.input_router import EmptyContentError, InputTooLargeError
@@ -23,6 +31,15 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+)
+
+# Root fix: CORS for local dev — allows file://, localhost:*, and any origin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -237,3 +254,18 @@ async def list_memories(
         "limit": limit,
         "offset": offset,
     }
+
+
+# ----------------------------------------------------------------
+# Demo UI – served at /demo/  (must come LAST, after all API routes)
+# Root fix: use _DEMO_DIR (Path.resolve absolute path) so this works
+# regardless of what CWD uvicorn starts from.
+# ----------------------------------------------------------------
+
+@app.get("/ui")
+async def ui_redirect():
+    """Convenience redirect: /ui → /demo/index.html"""
+    return RedirectResponse(url="/demo/index.html")
+
+if _DEMO_DIR.is_dir():
+    app.mount("/demo", StaticFiles(directory=str(_DEMO_DIR), html=True), name="demo")
