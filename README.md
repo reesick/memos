@@ -235,6 +235,3 @@ pytest tests/test_phase1.py -v   # 54 passed, 1 skipped (Ollama model)
 
 inspired by [supermemory](https://supermemory.ai). wanted the open version i could actually study and build on. (copied the ui directly ;) )
 
----
-
-*VIT Pune · CSE(AI)-D · 2025-26*
