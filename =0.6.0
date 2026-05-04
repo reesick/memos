@@ -1,0 +1,21 @@
+Collecting kuzu
+  Downloading kuzu-0.11.3-cp313-cp313-win_amd64.whl.metadata (4.3 kB)
+Collecting tiktoken>=0.7.0
+  Using cached tiktoken-0.12.0-cp313-cp313-win_amd64.whl.metadata (6.9 kB)
+Collecting regex>=2022.1.18 (from tiktoken>=0.7.0)
+  Using cached regex-2026.4.4-cp313-cp313-win_amd64.whl.metadata (41 kB)
+Requirement already satisfied: requests>=2.26.0 in C:\Users\imved\AppData\Local\Programs\Python\Python313\Lib\site-packages (from tiktoken>=0.7.0) (2.32.3)
+Requirement already satisfied: charset-normalizer<4,>=2 in C:\Users\imved\AppData\Local\Programs\Python\Python313\Lib\site-packages (from requests>=2.26.0->tiktoken>=0.7.0) (3.4.0)
+Requirement already satisfied: idna<4,>=2.5 in C:\Users\imved\AppData\Local\Programs\Python\Python313\Lib\site-packages (from requests>=2.26.0->tiktoken>=0.7.0) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in C:\Users\imved\AppData\Local\Programs\Python\Python313\Lib\site-packages (from requests>=2.26.0->tiktoken>=0.7.0) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in C:\Users\imved\AppData\Local\Programs\Python\Python313\Lib\site-packages (from requests>=2.26.0->tiktoken>=0.7.0) (2025.10.5)
+Downloading kuzu-0.11.3-cp313-cp313-win_amd64.whl (4.7 MB)
+   ---------------------------------------- 4.7/4.7 MB 794.0 kB/s  0:00:05
+Using cached tiktoken-0.12.0-cp313-cp313-win_amd64.whl (879 kB)
+Using cached regex-2026.4.4-cp313-cp313-win_amd64.whl (277 kB)
+Installing collected packages: kuzu, regex, tiktoken
+
+Successfully installed kuzu-0.11.3 regex-2026.4.4 tiktoken-0.12.0
+
+[notice] A new release of pip is available: 26.0.1 -> 26.1
+[notice] To update, run: python.exe -m pip install --upgrade pip

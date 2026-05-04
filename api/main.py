@@ -91,11 +91,23 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 async def health():
-    """Health check. Also shows Ollama status."""
-    from core.llm import is_ollama_running
+    """Health check. Shows active LLM provider and store status."""
+    from core.llm import (
+        is_ollama_running, is_openai_compat_available,
+        LLM_PROVIDER, OPENAI_COMPAT_MODEL, OPENAI_COMPAT_URL,
+    )
+    provider_status = {
+        "provider": LLM_PROVIDER,
+        "ollama": is_ollama_running() if LLM_PROVIDER == "ollama" else False,
+        "openai_compat": {
+            "available": is_openai_compat_available() if LLM_PROVIDER == "openai_compat" else False,
+            "url": OPENAI_COMPAT_URL,
+            "model": OPENAI_COMPAT_MODEL,
+        } if LLM_PROVIDER == "openai_compat" else None,
+    }
     return {
         "status": "ok",
-        "ollama": is_ollama_running(),
+        "llm": provider_status,
         "version": "1.0.0",
     }
 

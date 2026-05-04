@@ -17,23 +17,42 @@ logger = logging.getLogger("memoryos")
 
 
 def check_ollama():
-    from core.llm import is_ollama_running, LLM_PROVIDER, CLAUDE_API_KEY
-    if LLM_PROVIDER == "ollama":
+    from core.llm import (
+        is_ollama_running, is_openai_compat_available,
+        LLM_PROVIDER, CLAUDE_API_KEY, OPENAI_COMPAT_KEY, OPENAI_COMPAT_URL, OPENAI_COMPAT_MODEL,
+    )
+
+    if LLM_PROVIDER == "openai_compat":
+        if not OPENAI_COMPAT_KEY:
+            logger.error(
+                "✗  LLM_PROVIDER=openai_compat but OPENAI_COMPAT_KEY is not set.\n"
+                "   Add OPENAI_COMPAT_KEY=<your-key> to .env\n\n   Exiting."
+            )
+            sys.exit(1)
+        logger.info(f"✓  OpenAI-compatible provider ready: {OPENAI_COMPAT_URL} | model={OPENAI_COMPAT_MODEL}")
+
+    elif LLM_PROVIDER == "claude":
+        if not CLAUDE_API_KEY or CLAUDE_API_KEY == "sk-ant-xxx":
+            logger.error(
+                "✗  LLM_PROVIDER=claude but CLAUDE_API_KEY is not set.\n"
+                "   Add CLAUDE_API_KEY=<your-key> to .env\n\n   Exiting."
+            )
+            sys.exit(1)
+        logger.info("✓  Claude API configured.")
+
+    elif LLM_PROVIDER == "ollama":
         if not is_ollama_running():
-            if CLAUDE_API_KEY and CLAUDE_API_KEY != "sk-ant-xxx":
-                logger.warning(
-                    "⚠  Ollama is not running. Auto-fallback to Claude API activated.\n"
-                    "   To use Ollama: run `ollama serve` and `ollama pull llama3.1:7b`"
-                )
+            if OPENAI_COMPAT_KEY:
+                logger.warning("⚠  Ollama not running. Auto-fallback to OpenAI-compatible provider.")
+            elif CLAUDE_API_KEY and CLAUDE_API_KEY != "sk-ant-xxx":
+                logger.warning("⚠  Ollama not running. Auto-fallback to Claude API.")
             else:
                 logger.error(
-                    "✗  Ollama is not running and no CLAUDE_API_KEY is set.\n"
-                    "   MemoryOS requires at least one LLM to function.\n"
+                    "✗  Ollama is not running and no fallback LLM is configured.\n"
                     "   Options:\n"
-                    "     1. Install Ollama: https://ollama.com\n"
-                    "        Then: ollama pull llama3.1:7b && ollama serve\n"
-                    "     2. Set CLAUDE_API_KEY in .env and set LLM_PROVIDER=claude\n"
-                    "\n   Exiting."
+                    "     1. ollama pull llama3.1:7b && ollama serve\n"
+                    "     2. Set LLM_PROVIDER=openai_compat + OPENAI_COMPAT_KEY in .env\n"
+                    "     3. Set LLM_PROVIDER=claude + CLAUDE_API_KEY in .env\n\n   Exiting."
                 )
                 sys.exit(1)
         else:

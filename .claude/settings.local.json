@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/test_sdk.py -v)",
+      "Bash(pip install *)",
+      "Bash(python -c \"import mcp_server; print\\('MCP server imports OK'\\)\")",
+      "Bash(claude mcp *)",
+      "Bash(pip index *)",
+      "Bash(python -c \"import kuzu; import tiktoken; print\\(f'kuzu {kuzu.__version__}, tiktoken {tiktoken.__version__}'\\)\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}
