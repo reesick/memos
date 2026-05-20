@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MemoryOS</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="header">
+    <span class="logo">⚡ MemoryOS</span>
+    <span class="version">v1.0</span>
+  </div>
+
+  <!-- Status indicator -->
+  <div class="status-row">
+    <span class="status-dot" id="status-dot"></span>
+    <span class="status-text" id="status-text">Checking server…</span>
+    <button class="btn-link" id="btn-refresh">↻</button>
+  </div>
+
+  <hr />
+
+  <!-- Settings -->
+  <div class="section-label">Settings</div>
+
+  <label class="field-label">API URL</label>
+  <input class="input" id="api-url" type="text" placeholder="http://localhost:8000" />
+  <div class="hint">Use ngrok URL if running locally behind https</div>
+
+  <label class="field-label">Your Name / User ID</label>
+  <input class="input" id="user-id" type="text" placeholder="e.g. sri" />
+  <div class="hint">
+    All your memories are stored under this ID.<br />
+    Different users → different IDs → completely separate data.
+  </div>
+
+  <label class="field-label">Context results (top-k)</label>
+  <input class="input" id="top-k" type="number" min="1" max="10" value="3" />
+  <div class="hint">How many memory facts to inject per prompt</div>
+
+  <div class="toggle-row">
+    <label class="field-label" style="margin:0">Auto-store messages</label>
+    <label class="toggle">
+      <input type="checkbox" id="auto-store" checked />
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="hint">Automatically save what you type to memory after each send</div>
+
+  <button class="btn-save" id="btn-save">Save Settings</button>
+  <div class="save-feedback" id="save-feedback"></div>
+
+  <hr />
+
+  <!-- Quick stats -->
+  <div class="section-label">Your Memory</div>
+  <div class="stats-row" id="stats-row">
+    <span id="stat-count">— facts</span>
+    <a id="link-graph" href="#" target="_blank" class="btn-link">Graph UI ↗</a>
+    <a id="link-docs"  href="#" target="_blank" class="btn-link">API docs ↗</a>
+  </div>
+
+  <!-- Recent memories preview -->
+  <div class="memories-list" id="memories-list">
+    <div class="placeholder">Save settings to load your memories</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

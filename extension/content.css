@@ -1,0 +1,212 @@
+/* ── Memory buttons ──────────────────────────────────────────────────────── */
+
+.memoryos-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 6px;
+  border: none;
+  border-radius: 8px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.memoryos-btn:hover {
+  background: #10a37f;
+  transform: scale(1.08);
+}
+
+.memoryos-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.memoryos-btn.memoryos-success { background: #10a37f; }
+.memoryos-btn.memoryos-error   { background: #c0392b; }
+.memoryos-btn.memoryos-loading { animation: memoryos-pulse 0.8s infinite; }
+
+@keyframes memoryos-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ── Memory panel ────────────────────────────────────────────────────────── */
+
+.memoryos-panel {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  width: 340px;
+  max-height: 500px;
+  background: #1a1a2e;
+  border: 1px solid #2d2d4e;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  z-index: 99999;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.memoryos-panel.memoryos-panel-open {
+  display: flex;
+}
+
+.memoryos-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid #2d2d4e;
+  color: #fff;
+}
+
+.memoryos-panel-user {
+  font-size: 11px;
+  background: #10a37f;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+
+.memoryos-panel-search {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2d2d4e;
+}
+
+.memoryos-panel-search input {
+  flex: 1;
+  background: #0d0d1a;
+  border: 1px solid #2d2d4e;
+  border-radius: 6px;
+  color: #e0e0e0;
+  padding: 5px 10px;
+  font-size: 12px;
+  outline: none;
+}
+
+.memoryos-panel-search input:focus {
+  border-color: #10a37f;
+}
+
+.memoryos-panel-search button {
+  background: #10a37f;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.memoryos-panel-results {
+  overflow-y: auto;
+  flex: 1;
+  padding: 6px 0;
+}
+
+.memoryos-panel-empty,
+.memoryos-panel-loading,
+.memoryos-panel-error {
+  padding: 20px 16px;
+  text-align: center;
+  color: #666;
+  font-size: 12px;
+}
+
+.memoryos-panel-error { color: #e74c3c; }
+
+.memoryos-memory-row {
+  padding: 8px 14px;
+  border-bottom: 1px solid #1e1e38;
+  cursor: default;
+  transition: background 0.1s;
+}
+
+.memoryos-memory-row:hover {
+  background: #1e1e38;
+}
+
+.memoryos-memory-entity {
+  font-size: 11px;
+  font-weight: 700;
+  color: #10a37f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.memoryos-memory-attr {
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 3px;
+}
+
+.memoryos-memory-value {
+  font-size: 13px;
+  color: #e0e0e0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.memoryos-memory-meta {
+  font-size: 10px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.memoryos-panel-footer {
+  padding: 8px 14px;
+  border-top: 1px solid #2d2d4e;
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+}
+
+.memoryos-panel-footer a {
+  color: #10a37f;
+  text-decoration: none;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+
+.memoryos-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border: 1px solid #2d2d4e;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  z-index: 999999;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.memoryos-toast.memoryos-toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.memoryos-toast.memoryos-toast-success { border-color: #10a37f; }
+.memoryos-toast.memoryos-toast-error   { border-color: #c0392b; color: #e74c3c; }
+.memoryos-toast.memoryos-toast-warn    { border-color: #f39c12; }
