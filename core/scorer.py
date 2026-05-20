@@ -149,4 +149,9 @@ def _apply_diversity(scored: List[Dict], max_per_session: int = 3) -> List[Dict]
         else:
             overflow.append(item)
 
-    return result + overflow
+    # Re-sort combined list so score ordering is preserved even after diversity shuffle.
+    # Overflow items were de-prioritised by session cap, not by score — they still
+    # need to be interleaved by score so callers can trust results[i].score >= results[i+1].score.
+    combined = result + overflow
+    combined.sort(key=lambda x: x["score"], reverse=True)
+    return combined
