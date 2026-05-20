@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:7b")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5")
@@ -37,6 +37,7 @@ def _call_ollama(prompt: str, temperature: float = 0.1) -> str:
         "model": OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
+        "keep_alive": "1m",  # unload model after 1 min idle → frees RAM for Chrome
         "options": {"temperature": temperature},
     }
     try:
@@ -91,9 +92,11 @@ def call(prompt: str, temperature: float = 0.1) -> str:
             return _call_ollama(prompt, temperature)
         except LLMError as e:
             err = str(e)
-            # Root fix: trigger fallback on UNAVAILABLE *or* MODEL_NOT_FOUND
+            # Root fix: trigger fallback on UNAVAILABLE, MODEL_NOT_FOUND,
+            # OR generic OLLAMA_ERROR (covers runner crashes / 500s where the
+            # daemon is up but the model process died — e.g. OOM on undersized GPUs).
             can_fallback = (
-                ("UNAVAILABLE" in err or "MODEL_NOT_FOUND" in err)
+                ("UNAVAILABLE" in err or "MODEL_NOT_FOUND" in err or "OLLAMA_ERROR" in err)
                 and CLAUDE_API_KEY
                 and CLAUDE_API_KEY != "sk-ant-xxx"
             )
@@ -139,7 +142,7 @@ def is_model_available() -> bool:
             data = response.json()
             model_names = [m.get("name", "") for m in data.get("models", [])]
             base = OLLAMA_MODEL.split(":")[0]
-            # Match exact name OR prefix (e.g. "llama3.1:7b" matches "llama3.1:7b-instruct-q4")
+            # Match exact name OR prefix (e.g. "llama3.1:8b" matches "llama3.1:8b-instruct-q4")
             return any(
                 OLLAMA_MODEL == name or name.startswith(base)
                 for name in model_names

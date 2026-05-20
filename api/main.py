@@ -89,6 +89,30 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Endpoints
 # ----------------------------------------------------------------
 
+@app.on_event("startup")
+async def _startup():
+    """Pre-warm embedder + migrate first-person entity aliases on startup."""
+    import asyncio
+    from core import embedder
+
+    # Pre-warm the embedding model in a thread so the first /memory/add is fast.
+    # Without this, cold start on first request pings HuggingFace (~20s timeout)
+    # and loads the model from disk (~5s) — totalling ~25s added latency.
+    try:
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, embedder.warmup)
+        logger.info("Embedder pre-warmed.")
+    except Exception as e:
+        logger.warning(f"Embedder warmup skipped: {e}")
+
+    try:
+        result = engine.migrate_self_entity()
+        if result.get("renamed", 0) > 0:
+            logger.info(f"Startup migration: {result}")
+    except Exception as e:
+        logger.warning(f"Startup migration skipped: {e}")
+
+
 @app.get("/health")
 async def health():
     """Health check. Also shows Ollama status."""

@@ -17,13 +17,13 @@ logger = logging.getLogger("memoryos")
 
 
 def check_ollama():
-    from core.llm import is_ollama_running, LLM_PROVIDER, CLAUDE_API_KEY
+    from core.llm import is_ollama_running, LLM_PROVIDER, CLAUDE_API_KEY, OLLAMA_MODEL
     if LLM_PROVIDER == "ollama":
         if not is_ollama_running():
             if CLAUDE_API_KEY and CLAUDE_API_KEY != "sk-ant-xxx":
                 logger.warning(
                     "⚠  Ollama is not running. Auto-fallback to Claude API activated.\n"
-                    "   To use Ollama: run `ollama serve` and `ollama pull llama3.1:7b`"
+                    f"   To use Ollama: run `ollama serve` and `ollama pull {OLLAMA_MODEL}`"
                 )
             else:
                 logger.error(
@@ -31,7 +31,7 @@ def check_ollama():
                     "   MemoryOS requires at least one LLM to function.\n"
                     "   Options:\n"
                     "     1. Install Ollama: https://ollama.com\n"
-                    "        Then: ollama pull llama3.1:7b && ollama serve\n"
+                    f"        Then: ollama pull {OLLAMA_MODEL} && ollama serve\n"
                     "     2. Set CLAUDE_API_KEY in .env and set LLM_PROVIDER=claude\n"
                     "\n   Exiting."
                 )

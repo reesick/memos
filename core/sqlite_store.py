@@ -274,5 +274,18 @@ class SqliteStore:
             q += " WHERE expired_at IS NULL"
         return self._conn.execute(q).fetchone()[0]
 
+    def rename_entity(self, old_entity: str, new_entity: str) -> int:
+        """Rename all facts from old_entity to new_entity. Returns count updated."""
+        cursor = self._conn.execute(
+            "UPDATE memories SET entity=? WHERE entity=?",
+            (new_entity, old_entity),
+        )
+        self._conn.commit()
+        return cursor.rowcount
+
+    def get_distinct_entities(self) -> List[str]:
+        rows = self._conn.execute("SELECT DISTINCT entity FROM memories").fetchall()
+        return [r[0] for r in rows]
+
     def close(self):
         self._conn.close()

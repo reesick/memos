@@ -73,6 +73,53 @@ def _new_session_id() -> str:
     return f"sess_{int(time.time())}"
 
 
+# First-person aliases the extractor emits when it doesn't know the speaker's name
+_SELF_ALIASES = {'i', 'me', 'my', 'myself', 'the user', 'user', 'speaker', 'unknown'}
+
+
+def _lookup_user_name(sqlite) -> Optional[str]:
+    """Check SQLite for a stored name fact whose entity is a first-person alias."""
+    for alias in list(_SELF_ALIASES) + ['I', 'Me', 'User', 'Speaker']:
+        row = sqlite.find_by_entity_attribute(alias, 'name')
+        if row:
+            return row['value'].strip()
+    return None
+
+
+def _resolve_self_entity(facts: List, sqlite) -> List:
+    """
+    Replace first-person entity references ('I', 'me', 'myself' …) with the
+    speaker's real name so facts are indexed under a stable entity key.
+
+    Resolution order:
+      1. Current batch contains a name declaration  → use that value
+      2. SQLite already has a name fact stored       → use that value
+      3. No name known yet                          → leave facts unchanged
+    """
+    from core.extractor import Fact as ExtractedFact
+
+    # 1. Check the current batch first (handles "My name is Sri" in the same message)
+    user_name: Optional[str] = None
+    for fact in facts:
+        if fact.attribute == 'name' and fact.entity.lower().strip() in _SELF_ALIASES:
+            user_name = fact.value.strip()
+            break
+
+    # 2. Fall back to the stored name
+    if not user_name:
+        user_name = _lookup_user_name(sqlite)
+
+    if not user_name:
+        return facts
+
+    resolved = []
+    for fact in facts:
+        if fact.entity.lower().strip() in _SELF_ALIASES:
+            fact = fact.model_copy(update={'entity': user_name})
+        resolved.append(fact)
+    return resolved
+
+
 # ================================================================
 # PUBLIC API
 # ================================================================
@@ -103,6 +150,9 @@ def add(
     # ---- Step 2: Extract facts ----
     from core.extractor import extract_all
     facts = extract_all(segments)
+
+    # ---- Step 2b: Resolve first-person entities → real name ----
+    facts = _resolve_self_entity(facts, _sqlite)
 
     # ---- Step 3: Dedup ----
     from core.deduplicator import deduplicate, DedupAction
@@ -275,6 +325,34 @@ def search(
         "cross_source": cross_source,
         "retrieval_ms": retrieval_ms,
     }
+
+
+def migrate_self_entity() -> Dict:
+    """
+    One-time migration: rename all first-person entity aliases ('I', 'me' …)
+    to the user's real name across SQLite + Kuzu.
+    Call this after the server starts if old 'I' facts exist.
+    """
+    _init_stores()
+    user_name = _lookup_user_name(_sqlite)
+    if not user_name:
+        return {"status": "skipped", "reason": "No user name found in DB yet"}
+
+    total = 0
+    for alias in list(_SELF_ALIASES) + ['I', 'Me', 'User', 'Speaker']:
+        if alias.lower() == user_name.lower():
+            continue
+        count = _sqlite.rename_entity(alias, user_name)
+        if count:
+            total += count
+            try:
+                from core import graph_enricher
+                graph_enricher.rename_entity(_kuzu, alias, user_name)
+            except Exception:
+                pass  # Kuzu rename is best-effort; rebuild handles it
+
+    logger.info(f"migrate_self_entity: renamed {total} facts → '{user_name}'")
+    return {"status": "done", "renamed": total, "user_name": user_name}
 
 
 def delete(memory_id: str) -> Dict:

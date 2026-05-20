@@ -1,11 +1,9 @@
-# MemoryOS – Python dependencies
-# Virtual environments
+# ── Python ────────────────────────────────────────────────────────────────────
 venv/
 env/
 .venv/
 __pypackages__/
 
-# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,7 +14,7 @@ dist/
 build/
 .eggs/
 
-# Data stores (runtime-generated, never commit)
+# ── Data stores (runtime-generated, never commit) ─────────────────────────────
 data/
 *.db
 *.db-wal
@@ -24,17 +22,21 @@ data/
 *.index
 kuzu_db/
 
-# Environment variables (contains API keys!)
+# ── Secrets ───────────────────────────────────────────────────────────────────
 .env
 .env.*
 !.env.example
 
-# ML model cache (large downloads)
+# ── ML model cache (large downloads) ─────────────────────────────────────────
 .cache/
 sentence_transformers_cache/
-~/.cache/
 
-# IDE
+# ── Frontend build / deps ─────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
@@ -42,12 +44,12 @@ sentence_transformers_cache/
 .DS_Store
 Thumbs.db
 
-# Test output
+# ── Tests ─────────────────────────────────────────────────────────────────────
 .pytest_cache/
 htmlcov/
 .coverage
 *.cover
 
-# Logs
+# ── Logs ──────────────────────────────────────────────────────────────────────
 *.log
 logs/

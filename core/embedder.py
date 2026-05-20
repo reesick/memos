@@ -4,10 +4,16 @@ Uses all-MiniLM-L6-v2 (384-dim). Downloaded once (~90MB), runs fully offline aft
 LRU cache of 512 to avoid re-embedding repeated text.
 """
 
+import os
 import numpy as np
 from cachetools import LRUCache
-from functools import lru_cache
 from typing import List
+
+# Disable HuggingFace Hub network calls — model is already cached locally.
+# Without this, SentenceTransformer pings huggingface.co on every cold start
+# and times out (~20s) before falling back to the local cache.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 # Global model instance – loaded once on first use
 _model = None
@@ -20,6 +26,15 @@ def _get_model():
         from sentence_transformers import SentenceTransformer
         _model = SentenceTransformer("all-MiniLM-L6-v2")
     return _model
+
+
+def warmup():
+    """
+    Pre-load the embedding model and run one dummy inference.
+    Call this at server startup so the first real request is fast.
+    """
+    model = _get_model()
+    model.encode("warmup", convert_to_numpy=True, normalize_embeddings=True)
 
 
 def encode(text: str) -> np.ndarray:
