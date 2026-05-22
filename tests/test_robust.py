@@ -148,7 +148,7 @@ def preflight() -> bool:
                    f"status={data.get('status')} version={data.get('version')}")
         if not data.get("ollama"):
             report.add("ollama available", "WARN",
-                       "Ollama not reachable — LLM-dependent cases may fall back to Claude or fail")
+                       "Ollama not reachable — LLM-dependent cases will fail (no fallback configured)")
         else:
             report.add("ollama available", "PASS")
         return True

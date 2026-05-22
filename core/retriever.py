@@ -41,6 +41,12 @@ def retrieve(
     # Embed the query locally (no LLM)
     query_vec = embedder.encode(query)
 
+    # When a session_filter is active, session facts are a tiny fraction of the total
+    # FAISS index. Over-sample aggressively so they survive the session pruning step.
+    faiss_top_k = top_k * 2
+    if session_filter:
+        faiss_top_k = min(top_k * 20, max(faiss_store.total(), top_k * 2))
+
     # ----------------------------------------------------------------
     # Parallel queries: FAISS + BM25 + graph traversal
     # ----------------------------------------------------------------
@@ -50,7 +56,7 @@ def retrieve(
     all_records: Dict[str, Dict] = {}
 
     def _faiss_query():
-        return faiss_store.search(query_vec, top_k=top_k * 2)
+        return faiss_store.search(query_vec, top_k=faiss_top_k)
 
     def _bm25_query():
         return sqlite_store.bm25_search(
@@ -65,8 +71,8 @@ def retrieve(
         words = query.strip().split()
         if not words:
             return []
-        # Simple heuristic: first capitalized word = entity
-        entity = next((w for w in words if w[0].isupper()), words[0])
+        # Prefer the first capitalized word; normalize to lowercase to match stored entities.
+        entity = next((w for w in words if w[0].isupper()), words[0]).lower()
         return kuzu_store.traverse(entity, hops=2, include_expired=include_expired)
 
     with ThreadPoolExecutor(max_workers=3) as executor:

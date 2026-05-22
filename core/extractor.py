@@ -57,12 +57,21 @@ Rules:
 - Extract ONLY what is explicitly stated. Never infer or add information not in the text.
 - Each fact must have: entity (who/what), attribute (which property), value (the fact itself).
 - Confidence: 1.0 = explicitly stated, 0.8 = clearly implied, 0.7 = somewhat implied, below 0.7 = skip.
-- If text has no extractable facts (e.g., it's a question), return an empty array [].
-- CRITICAL: attribute MUST be snake_case. Use the shortest canonical name.
-  Preferred vocabulary: role, language, location, skill, technology, status, team,
-  university, employer, age, preference, experience, project, framework, database.
-  Examples: "technology preference" → "technology", "works at" → "employer",
-  "studied at" → "university", "knows how to use" → "skill".
+- If text has no extractable facts (e.g., it is a question), return an empty array [].
+- CRITICAL: attribute MUST use EXACTLY the canonical name from this list — never use synonyms:
+    role         (not: occupation, position, job_title, designation, title)
+    employer     (not: company, organization, works_at, workplace)
+    location     (not: city, country, lives_in, based_in, residence, address)
+    skill        (not: specialization, expertise, proficiency, specializes_in)
+    technology   (not: tool, stack, framework, library — use "technology" for all)
+    experience   (not: tenure, years_experience, work_duration, seniority)
+    age          (not: years_old, birth_year)
+    university   (not: school, college, studied_at, alma_mater)
+    language     (not: speaks, fluent_in, communicates_in)
+    status       (not: availability, condition, current_state)
+    project      (not: working_on, building, initiative)
+    preference   (not: likes, prefers, favorite)
+    database     (not: db, data_store)
 
 Output ONLY valid JSON array, no explanation, no markdown. Example:
 [

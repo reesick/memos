@@ -116,10 +116,11 @@ async def _startup():
 @app.get("/health")
 async def health():
     """Health check. Also shows Ollama status."""
-    from core.llm import is_ollama_running
+    from core.llm import is_ollama_running, OLLAMA_MODEL
     return {
         "status": "ok",
         "ollama": is_ollama_running(),
+        "model": OLLAMA_MODEL,
         "version": "1.0.0",
     }
 
@@ -270,7 +271,19 @@ async def list_memories(
     params.extend([limit, offset])
 
     rows = conn.execute(q, params).fetchall()
-    total = engine._sqlite.count(include_expired=include_expired)
+
+    # Count must respect the same filters as the rows query
+    count_q = "SELECT COUNT(*) FROM memories WHERE 1=1"
+    count_params: list = []
+    if not include_expired:
+        count_q += " AND expired_at IS NULL"
+    if source_filter:
+        count_q += " AND source_type = ?"
+        count_params.append(source_filter)
+    if session_filter:
+        count_q += " AND session_id = ?"
+        count_params.append(session_filter)
+    total = conn.execute(count_q, count_params).fetchone()[0]
 
     return {
         "memories": [dict(r) for r in rows],

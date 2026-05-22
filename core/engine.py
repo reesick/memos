@@ -387,7 +387,7 @@ def get_graph(entity: str, hops: int = 2) -> Dict:
     """Return entity relationship subgraph from Kuzu."""
     _init_stores()
     hops = min(hops, 4)
-    graph = _kuzu.get_subgraph(entity, hops)
+    graph = _kuzu.get_subgraph(entity.lower().strip(), hops)
     return {
         "nodes": graph["nodes"],
         "edges": graph["edges"],

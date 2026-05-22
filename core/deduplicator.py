@@ -27,9 +27,9 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
 # Cosine similarity threshold for "same attribute" judgment.
-# 0.82 chosen empirically: "technology preference" ≈ "preferred_technology" > 0.82
-# "role" and "employer" < 0.82 (genuinely different attributes).
-SEMANTIC_THRESHOLD = 0.82
+# 0.75: catches close synonyms like "occupation"/"role" (~0.78) while keeping
+# genuinely distinct attributes ("role"/"employer" ~0.35) separate.
+SEMANTIC_THRESHOLD = 0.75
 
 
 class DedupAction(str, Enum):

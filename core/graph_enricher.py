@@ -52,6 +52,7 @@ def enrich_add(
     Called after ADD: create Entity node, Fact node, and RELATES_TO edge.
     """
     try:
+        entity = entity.lower().strip()
         entity_type = _infer_entity_type(attribute)
         source = doc_id if doc_id else "conversation"
         relationship = _infer_relationship(attribute)
@@ -83,6 +84,7 @@ def enrich_update(
     Called after UPDATE: expire old edge, create new Fact node and edge.
     """
     try:
+        entity = entity.lower().strip()
         # Expire old edge
         kuzu_store.expire_edge(entity, old_memory_id)
 
@@ -100,6 +102,7 @@ def enrich_delete(memory_id: str, entity: str, kuzu_store):
     Called after DELETE: remove Fact node and all its edges.
     """
     try:
+        entity = entity.lower().strip()
         kuzu_store.expire_edge(entity, memory_id)
         kuzu_store.delete_fact(memory_id)
     except Exception as e:

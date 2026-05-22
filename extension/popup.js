@@ -80,8 +80,8 @@ async function checkServer() {
 
     if (data.status === "ok") {
       dot.className    = "status-dot ok";
-      const ollama     = data.ollama ? "Ollama ✓" : "Ollama ✗ (Claude fallback)";
-      text.textContent = `Connected · ${ollama}`;
+      const ollamaStatus = data.ollama ? `Ollama ✓ (${data.model || "mistral"})` : "Ollama ✗ — run: ollama serve";
+      text.textContent = `Connected · ${ollamaStatus}`;
     } else {
       dot.className    = "status-dot warn";
       text.textContent = "Server responded but status unknown";

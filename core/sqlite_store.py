@@ -137,6 +137,7 @@ class SqliteStore:
         memory_id: Optional[str] = None,
     ) -> str:
         """Insert a new fact. Returns memory_id."""
+        entity = entity.lower().strip()
         mid = memory_id or _new_memory_id()
         now = int(time.time())
         self._conn.execute(
@@ -189,7 +190,7 @@ class SqliteStore:
             """SELECT * FROM memories
                WHERE entity=? AND attribute=? AND expired_at IS NULL
                ORDER BY timestamp DESC LIMIT 1""",
-            (entity, attribute),
+            (entity.lower().strip(), attribute),
         ).fetchone()
         return dict(row) if row else None
 
@@ -200,7 +201,7 @@ class SqliteStore:
         equivalent attributes that may have different string names.
         """
         q = "SELECT * FROM memories WHERE entity=?"
-        params = [entity]
+        params = [entity.lower().strip()]
         if not include_expired:
             q += " AND expired_at IS NULL"
         q += " ORDER BY timestamp DESC"
@@ -278,7 +279,7 @@ class SqliteStore:
         """Rename all facts from old_entity to new_entity. Returns count updated."""
         cursor = self._conn.execute(
             "UPDATE memories SET entity=? WHERE entity=?",
-            (new_entity, old_entity),
+            (new_entity.lower().strip(), old_entity.lower().strip()),
         )
         self._conn.commit()
         return cursor.rowcount

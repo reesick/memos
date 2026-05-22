@@ -154,7 +154,7 @@ def phase0_preflight() -> bool:
             report.record("ollama reachable", "PASS")
         else:
             report.record("ollama reachable", "WARN",
-                          "Ollama is down — LLM ops will fall back to Claude or fail")
+                          "Ollama is down — LLM ops will fail (no fallback configured)")
         return True
     except Exception as e:
         report.record("server alive", "FAIL", str(e))

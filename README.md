@@ -197,7 +197,7 @@ interactive docs at `http://localhost:8000/docs`
 | layer | tech |
 |---|---|
 | storage | SQLite (WAL + FTS5 BM25) · FAISS IndexFlatL2 · Kuzu graph |
-| intelligence | Ollama llama3.1:7b (local) · Claude haiku (fallback) |
+| intelligence | Ollama mistral:7b-instruct-q4_K_M (local) |
 | embeddings | all-MiniLM-L6-v2 · 384-dim · CPU · LRU cache 512 |
 | api | FastAPI · Pydantic v2 · uvicorn |
 | sdk | Python client · retry logic built in |
@@ -209,9 +209,8 @@ interactive docs at `http://localhost:8000/docs`
 
 ```env
 LLM_PROVIDER=ollama
-OLLAMA_MODEL=llama3.1:7b
+OLLAMA_MODEL=mistral:7b-instruct-q4_K_M
 OLLAMA_URL=http://localhost:11434
-CLAUDE_API_KEY=sk-ant-xxx     # optional fallback
 DB_PATH=./data
 ```
 
